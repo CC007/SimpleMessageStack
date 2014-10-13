@@ -16,8 +16,6 @@ import com.github.cc007.simplemessagestack.DataLinkLayerProtocolHeaderTypes;
 import com.github.cc007.simplemessagestack.exceptions.checksumErrorException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
