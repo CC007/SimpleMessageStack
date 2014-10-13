@@ -7,6 +7,8 @@ package com.github.cc007.simplemessagestack.protocols;
 
 import com.github.cc007.osimodel.Address;
 import com.github.cc007.osimodel.HeaderType;
+import com.github.cc007.osimodel.HeaderTypes;
+import com.github.cc007.osimodel.exceptions.HeaderTypesClassException;
 import com.github.cc007.osimodel.protocols.networkLayer.NetworkLayerProtocol;
 import com.github.cc007.osimodel.protocols.transportLayer.TransportLayerProtocol;
 
@@ -19,7 +21,6 @@ public class DummyNetworkLayerProtocol extends NetworkLayerProtocol {
     public DummyNetworkLayerProtocol() {
     }
 
-    
     @Override
     public void setSegment(TransportLayerProtocol segment) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -43,7 +44,7 @@ public class DummyNetworkLayerProtocol extends NetworkLayerProtocol {
     }
 
     @Override
-    public void expand(byte[][] collapsedObject) {
+    public void expand(byte[][] collapsedObject, Class<? extends HeaderTypes> headerTypesClass) throws HeaderTypesClassException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -76,5 +77,5 @@ public class DummyNetworkLayerProtocol extends NetworkLayerProtocol {
     public HeaderType getNextHeader() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }

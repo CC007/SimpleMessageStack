@@ -7,12 +7,17 @@ package com.github.cc007.simplemessagestack.protocols;
 
 import com.github.cc007.osimodel.Address;
 import com.github.cc007.osimodel.HeaderType;
+import com.github.cc007.osimodel.HeaderTypes;
 import com.github.cc007.osimodel.PerformanceStatistics;
+import com.github.cc007.osimodel.exceptions.HeaderTypesClassException;
 import com.github.cc007.osimodel.protocols.datalinkLayer.DatalinkLayerProtocol;
 import com.github.cc007.osimodel.protocols.networkLayer.NetworkLayerProtocol;
+import com.github.cc007.simplemessagestack.DataLinkLayerProtocolHeaderTypes;
 import com.github.cc007.simplemessagestack.exceptions.checksumErrorException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
@@ -20,7 +25,7 @@ import java.util.zip.CRC32;
  * @author Rik
  */
 public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
-
+    public static final Class<DataLinkLayerProtocolHeaderTypes> DEFAULT_HEADER_TYPES = DataLinkLayerProtocolHeaderTypes.class;
     public static final int SOURCE_ADDRESS_SIZE = 0;
     public static final int DESTINATION_ADDRESS_SIZE = 0;
     public static final int PROTOCOLTYPE_SIZE = 2;
@@ -81,11 +86,18 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
     }
 
     @Override
-    public void expand(byte[][] collapsedObject) {
+    public void expand(byte[][] collapsedObject, Class<? extends HeaderTypes> headerTypesClass) throws HeaderTypesClassException{
         if (collapsedObject.length != 1) {
             throw new IllegalArgumentException("Only exactly one frame at a time is supported");
         } else {
-            
+            try {
+                this.setNextHeader(headerTypesClass.newInstance().getHeaderType(ByteBuffer.wrap(collapsedObject[0]).getShort()));
+                if(nextHeaderType.isLayerProtocol()){
+                    this.setDatagram((NetworkLayerProtocol) nextHeaderType.getNewLayerProtocolObject());
+                }
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new HeaderTypesClassException("It was not possible to expand. The exception was caused by the provided HeaderTypes class", ex);
+            }
         }
     }
 

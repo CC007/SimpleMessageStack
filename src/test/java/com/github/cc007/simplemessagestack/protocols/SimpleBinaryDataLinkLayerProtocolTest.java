@@ -152,7 +152,7 @@ public class SimpleBinaryDataLinkLayerProtocolTest {
     public void testExpand() {
         System.out.println("expand");
         byte[][] collapsedObject = null;
-        sbdlp.expand(collapsedObject);
+        sbdlp.expand(collapsedObject, sbdlp.DEFAULT_HEADER_TYPES);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
