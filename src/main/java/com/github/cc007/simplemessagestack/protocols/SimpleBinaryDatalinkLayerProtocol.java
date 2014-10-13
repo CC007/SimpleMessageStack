@@ -23,6 +23,7 @@ import java.util.zip.CRC32;
  * @author Rik
  */
 public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
+
     public static final Class<DataLinkLayerProtocolHeaderTypes> DEFAULT_HEADER_TYPES = DataLinkLayerProtocolHeaderTypes.class;
     public static final int SOURCE_ADDRESS_SIZE = 0;
     public static final int DESTINATION_ADDRESS_SIZE = 0;
@@ -70,9 +71,9 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
         byte[][] frameByteArray = new byte[collapseCount][0];
         for (int i = 0; i < collapseCount; i++) {
             frameByteArray[i] = new byte[SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE + datagramByteArray[i].length + CHECKSUM_SIZE];
-            System.arraycopy(getNextHeader().asByteArray(), 0, frameByteArray[i], 0, PROTOCOLTYPE_SIZE);
-            System.arraycopy(datagramByteArray[i], 0, frameByteArray[i], PROTOCOLTYPE_SIZE, datagramByteArray[i].length);
-            System.arraycopy(ByteBuffer.allocate(4).putInt(checksum.get(i)).array(), 0, frameByteArray[i], PROTOCOLTYPE_SIZE + datagramByteArray[i].length, CHECKSUM_SIZE);
+            System.arraycopy(getNextHeader().asByteArray(), 0, frameByteArray[i], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE, PROTOCOLTYPE_SIZE);
+            System.arraycopy(datagramByteArray[i], 0, frameByteArray[i], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE, datagramByteArray[i].length);
+            System.arraycopy(ByteBuffer.allocate(CHECKSUM_SIZE).putInt(checksum.get(i)).array(), 0, frameByteArray[i], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE + datagramByteArray[i].length, CHECKSUM_SIZE);
         }
         return frameByteArray;
     }
@@ -84,14 +85,18 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
     }
 
     @Override
-    public void expand(byte[][] collapsedObject, Class<? extends HeaderTypes> headerTypesClass) throws HeaderTypesClassException{
+    public void expand(byte[][] collapsedObject, Class<? extends HeaderTypes> headerTypesClass) throws HeaderTypesClassException {
         if (collapsedObject.length != 1) {
             throw new IllegalArgumentException("Only exactly one frame at a time is supported");
         } else {
             try {
-                this.setNextHeader(headerTypesClass.newInstance().getHeaderType(ByteBuffer.wrap(collapsedObject[0]).getShort()));
-                if(nextHeaderType.isLayerProtocol()){
+                this.setNextHeader(headerTypesClass.newInstance().getHeaderType(ByteBuffer.wrap(collapsedObject[0], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE, PROTOCOLTYPE_SIZE).getShort()));
+                if (nextHeaderType.isLayerProtocol()) {
                     this.setDatagram((NetworkLayerProtocol) nextHeaderType.getNewLayerProtocolObject());
+                    int datagramSize = collapsedObject[0].length - SOURCE_ADDRESS_SIZE - DESTINATION_ADDRESS_SIZE - PROTOCOLTYPE_SIZE - CHECKSUM_SIZE;
+                    datagram.expand(new byte[][]{ByteBuffer.wrap(collapsedObject[0], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE, datagramSize).array()}, null);
+                    this.checksum = new ArrayList<>();
+                    checksum.add(ByteBuffer.wrap(collapsedObject[0], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE + datagramSize, CHECKSUM_SIZE).getInt());
                 }
             } catch (InstantiationException | IllegalAccessException ex) {
                 throw new HeaderTypesClassException("It was not possible to expand. The exception was caused by the provided HeaderTypes class", ex);
