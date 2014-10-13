@@ -108,8 +108,8 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
     public void correctErrors() throws checksumErrorException {
         boolean error = false;
         CRC32 crc = new CRC32();
-        byte[][] datagram = this.datagram.collapse();
-        if (datagram.length != this.checksum.size()) {
+        byte[][] datagramByteArray = this.datagram.collapse();
+        if (datagramByteArray.length != this.checksum.size()) {
             error = true;
         }
         for (int i = 0; i < checksum.size(); i++) {
