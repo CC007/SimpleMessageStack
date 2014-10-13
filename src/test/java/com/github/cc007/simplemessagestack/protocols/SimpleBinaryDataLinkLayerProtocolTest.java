@@ -7,9 +7,6 @@ package com.github.cc007.simplemessagestack.protocols;
 
 import com.github.cc007.bitoperations.BitArray;
 import com.github.cc007.osimodel.Address;
-import com.github.cc007.osimodel.HeaderType;
-import com.github.cc007.osimodel.PerformanceStatistics;
-import com.github.cc007.osimodel.protocols.networkLayer.NetworkLayerProtocol;
 import com.github.cc007.simplemessagestack.DummyNetworkLayerProtocolHeaderType;
 import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
@@ -69,7 +66,7 @@ public class SimpleBinaryDataLinkLayerProtocolTest {
         System.out.println(" Expected result:\t" + expResult);
         
         //setup result
-        int result = sbdlp.checksum[0];
+        int result = sbdlp.checksum.get(0);
         System.out.println(" Actual result:\t\t" + result);
         
         //assert

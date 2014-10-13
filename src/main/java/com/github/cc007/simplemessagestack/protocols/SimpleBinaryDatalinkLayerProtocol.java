@@ -12,6 +12,7 @@ import com.github.cc007.osimodel.protocols.datalinkLayer.DatalinkLayerProtocol;
 import com.github.cc007.osimodel.protocols.networkLayer.NetworkLayerProtocol;
 import com.github.cc007.simplemessagestack.exceptions.checksumErrorException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.zip.CRC32;
 
 /**
@@ -26,9 +27,9 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
     public static final int Min_DATAGRAM_PART_SIZE = 1;
     public static final int MAX_DATAGRAM_PART_SIZE = 1500;
     public static final int CHECKSUM_SIZE = 4;
-    
+
     protected NetworkLayerProtocol datagram;
-    protected int[] checksum;
+    protected ArrayList<Integer> checksum;
     protected HeaderType nextHeaderType;
 
     public SimpleBinaryDatalinkLayerProtocol() {
@@ -41,10 +42,10 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
         } else {
             this.datagram = datagram;
             CRC32 crc = new CRC32();
-            checksum = new int[datagram.collapseCount()];
+            checksum = new ArrayList<>(datagram.collapseCount());
             for (int i = 0; i < datagram.collapseCount(); i++) {
                 crc.update(datagram.collapse()[i]);
-                this.checksum[i] = (int) crc.getValue();
+                this.checksum.add((int) crc.getValue());
             }
         }
     }
@@ -68,7 +69,7 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
             frameByteArray[i] = new byte[SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE + datagramByteArray[i].length + CHECKSUM_SIZE];
             System.arraycopy(getNextHeader().asByteArray(), 0, frameByteArray[i], 0, PROTOCOLTYPE_SIZE);
             System.arraycopy(datagramByteArray[i], 0, frameByteArray[i], PROTOCOLTYPE_SIZE, datagramByteArray[i].length);
-            System.arraycopy(ByteBuffer.allocate(4).putInt(checksum[i]).array(), 0, frameByteArray[i], PROTOCOLTYPE_SIZE + datagramByteArray[i].length, CHECKSUM_SIZE);
+            System.arraycopy(ByteBuffer.allocate(4).putInt(checksum.get(i)).array(), 0, frameByteArray[i], PROTOCOLTYPE_SIZE + datagramByteArray[i].length, CHECKSUM_SIZE);
         }
         return frameByteArray;
     }
@@ -81,7 +82,11 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
 
     @Override
     public void expand(byte[][] collapsedObject) {
-        
+        if (collapsedObject.length != 1) {
+            throw new IllegalArgumentException("Only exactly one frame at a time is supported");
+        } else {
+            
+        }
     }
 
     @Override
@@ -89,12 +94,12 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
         boolean error = false;
         CRC32 crc = new CRC32();
         byte[][] datagram = this.datagram.collapse();
-        if (datagram.length != this.checksum.length) {
+        if (datagram.length != this.checksum.size()) {
             error = true;
         }
-        for (int i = 0; i < checksum.length; i++) {
+        for (int i = 0; i < checksum.size(); i++) {
             crc.update(this.datagram.collapse()[i]);
-            if (this.checksum[i] != (int) crc.getValue()) {
+            if (this.checksum.get(i) != (int) crc.getValue()) {
                 error = true;
             }
         }
