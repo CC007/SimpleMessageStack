@@ -7,8 +7,11 @@ package com.github.cc007.simplemessagestack.protocols;
 
 import com.github.cc007.bitoperations.BitArray;
 import com.github.cc007.osimodel.Address;
+import com.github.cc007.osimodel.exceptions.HeaderTypesClassException;
 import com.github.cc007.simplemessagestack.DummyNetworkLayerProtocolHeaderType;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,21 +60,21 @@ public class SimpleBinaryDataLinkLayerProtocolTest {
     @Test
     public void testSetDatagram() {
         System.out.println("setDatagram");
-        System.out.println("complex setter: check if checksum is set properly");
+        System.out.println(" complex setter: check if checksum is set properly");
         
         //setup expected result
         CRC32 crc = new CRC32();
         crc.update(dnlp.collapse()[0]);
         int expResult = (int) crc.getValue();
-        System.out.println(" Expected result:\t" + expResult);
+        System.out.println("  Expected result:\t" + expResult);
         
         //setup result
         int result = sbdlp.checksum.get(0);
-        System.out.println(" Actual result:\t\t" + result);
+        System.out.println("  Actual result:\t" + result);
         
         //assert
         assertEquals(expResult, result);
-        System.out.println(" Test succeeded");
+        System.out.println("  Test succeeded");
         System.out.println();
     }
 
@@ -151,10 +154,18 @@ public class SimpleBinaryDataLinkLayerProtocolTest {
     @Test
     public void testExpand() {
         System.out.println("expand");
-        byte[][] collapsedObject = null;
-        sbdlp.expand(collapsedObject, sbdlp.DEFAULT_HEADER_TYPES);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        CRC32 crc = new CRC32();
+        crc.update(dnlp.collapse()[0]);
+        byte[][] collapsedObject = new byte[1][7];
+        System.arraycopy(ByteBuffer.allocate(2).putShort((short) -1).array(), 0, collapsedObject[0], 0, 2);
+        collapsedObject[0][2] = 1;
+        System.arraycopy(ByteBuffer.allocate(4).putInt((int) crc.getValue()).array(), 0, collapsedObject[0], 3, 4);
+        try {
+            sbdlp.expand(collapsedObject, SimpleBinaryDatalinkLayerProtocol.DEFAULT_HEADER_TYPES);
+        } catch (HeaderTypesClassException ex) {
+            fail(ex.getMessage());
+        }
+        fail("Needs to be expanded (no pun intended)");
     }
 
     /**

@@ -45,7 +45,6 @@ public class DummyNetworkLayerProtocol extends NetworkLayerProtocol {
 
     @Override
     public void expand(byte[][] collapsedObject, Class<? extends HeaderTypes> headerTypesClass) throws HeaderTypesClassException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
