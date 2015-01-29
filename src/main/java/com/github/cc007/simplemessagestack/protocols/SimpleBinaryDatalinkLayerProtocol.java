@@ -28,7 +28,7 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
     public static final int SOURCE_ADDRESS_SIZE = 0;
     public static final int DESTINATION_ADDRESS_SIZE = 0;
     public static final int PROTOCOLTYPE_SIZE = 2;
-    public static final int Min_DATAGRAM_PART_SIZE = 1;
+    public static final int MIN_DATAGRAM_PART_SIZE = 1;
     public static final int MAX_DATAGRAM_PART_SIZE = 1500;
     public static final int CHECKSUM_SIZE = 4;
 
@@ -90,7 +90,7 @@ public class SimpleBinaryDatalinkLayerProtocol extends DatalinkLayerProtocol {
             throw new IllegalArgumentException("Only exactly one frame at a time is supported");
         } else {
             try {
-                this.setNextHeader(headerTypesClass.newInstance().getHeaderType(ByteBuffer.wrap(collapsedObject[0], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE, PROTOCOLTYPE_SIZE).getShort()));
+                this.setNextHeader(headerTypesClass.newInstance().getHeaderType(ByteBuffer.wrap(collapsedObject[0], SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE, SOURCE_ADDRESS_SIZE + DESTINATION_ADDRESS_SIZE + PROTOCOLTYPE_SIZE).getShort()));
                 if (nextHeaderType.isLayerProtocol()) {
                     this.setDatagram((NetworkLayerProtocol) nextHeaderType.getNewLayerProtocolObject());
                     int datagramSize = collapsedObject[0].length - SOURCE_ADDRESS_SIZE - DESTINATION_ADDRESS_SIZE - PROTOCOLTYPE_SIZE - CHECKSUM_SIZE;
